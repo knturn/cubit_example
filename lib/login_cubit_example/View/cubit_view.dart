@@ -1,3 +1,5 @@
+import 'package:cubit_example/Service/Login_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,6 +10,7 @@ class CubitView extends StatelessWidget {
   final GlobalKey<FormState> formkey = GlobalKey();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  final _baseurl = 'https://reqres.in/api';
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -15,6 +18,11 @@ class CubitView extends StatelessWidget {
         formkey,
         emailController,
         passwordController,
+        service: LoginService(
+          Dio(
+            BaseOptions(baseUrl: _baseurl),
+          ),
+        ),
       ),
       child: BlocConsumer<LoginCubit, LoginState>(
         listener: (context, state) {},
@@ -26,7 +34,23 @@ class CubitView extends StatelessWidget {
   }
 
   Scaffold buildScaffold(BuildContext context, LoginState state) {
-    var form = Form(
+    return Scaffold(
+      appBar: AppBar(
+        leading: Visibility(
+            visible: context.watch<LoginCubit>().isLoading,
+            child: const Padding(
+              padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+              child: CircularProgressIndicator(),
+            )),
+        title: const Center(child: Text("LOGIN PAGE")),
+        backgroundColor: const Color.fromARGB(255, 7, 31, 37),
+      ),
+      body: buildForm(state, context),
+    );
+  }
+
+  Form buildForm(LoginState state, BuildContext context) {
+    return Form(
       key: formkey,
       autovalidateMode: autovalidateMethod(state),
       child: Padding(
@@ -40,22 +64,19 @@ class CubitView extends StatelessWidget {
               height: MediaQuery.of(context).size.height * 0.03,
             ),
             buildpassword(),
-            ElevatedButton(
-                onPressed: () {
-                  context.read<LoginCubit>().postUserModel();
-                },
-                child: const Text("SAVE"))
+            buildButton(context)
           ],
         ),
       ),
     );
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hellllo"),
-        backgroundColor: const Color.fromARGB(255, 7, 31, 37),
-      ),
-      body: form,
-    );
+  }
+
+  ElevatedButton buildButton(BuildContext context) {
+    return ElevatedButton(
+        onPressed: () {
+          context.read<LoginCubit>().postUserModel();
+        },
+        child: const Text("SAVE"));
   }
 
   AutovalidateMode autovalidateMethod(LoginState state) {
@@ -82,9 +103,9 @@ class CubitView extends StatelessWidget {
   TextFormField buildpassword() {
     return TextFormField(
         controller: passwordController,
-        validator: (value) => (value ?? " ").length > 12
+        validator: (value) => (value ?? " ").length > 8
             ? null
-            : ("Geçersiz değer. En az 12 parametre giriniz"),
+            : ("Geçersiz değer. En az 8 parametre giriniz"),
         decoration: const InputDecoration(
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(20))),
