@@ -1,16 +1,18 @@
 import 'package:cubit_example/Service/Login_service.dart';
+import 'package:cubit_example/login_cubit_example/Model/login_response_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../View Model/login_cubit.dart';
+import 'login_detail.dart';
 
 class CubitView extends StatelessWidget {
   CubitView({Key? key}) : super(key: key);
   final GlobalKey<FormState> formkey = GlobalKey();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  final _baseurl = 'https://reqres.in/api';
+  final baseurl = 'https://reqres.in/api';
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -20,12 +22,16 @@ class CubitView extends StatelessWidget {
         passwordController,
         service: LoginService(
           Dio(
-            BaseOptions(baseUrl: _baseurl),
+            BaseOptions(baseUrl: baseurl),
           ),
         ),
       ),
       child: BlocConsumer<LoginCubit, LoginState>(
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is LoginComplatedeState) {
+            state.navigate(context);
+          }
+        },
         builder: (context, state) {
           return buildScaffold(context, state);
         },
@@ -73,10 +79,12 @@ class CubitView extends StatelessWidget {
 
   ElevatedButton buildButton(BuildContext context) {
     return ElevatedButton(
-        onPressed: () {
-          context.read<LoginCubit>().postUserModel();
-        },
-        child: const Text("SAVE"));
+        onPressed: context.watch<LoginCubit>().isLoading
+            ? null
+            : () {
+                context.read<LoginCubit>().postUserModel();
+              },
+        child: const Text("LOGIN"));
   }
 
   AutovalidateMode autovalidateMethod(LoginState state) {
@@ -103,12 +111,21 @@ class CubitView extends StatelessWidget {
   TextFormField buildpassword() {
     return TextFormField(
         controller: passwordController,
-        validator: (value) => (value ?? " ").length > 8
+        validator: (value) => (value ?? " ").length > 4
             ? null
-            : ("Geçersiz değer. En az 8 parametre giriniz"),
+            : ("Geçersiz değer. En az 4 parametre giriniz"),
         decoration: const InputDecoration(
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(20))),
             labelText: "Password"));
+  }
+}
+
+extension LoginComplateExtension on LoginComplatedeState {
+  void navigate(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => LoginDetail(
+              model: model,
+            )));
   }
 }

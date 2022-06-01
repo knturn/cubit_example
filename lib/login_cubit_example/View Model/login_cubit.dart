@@ -20,14 +20,15 @@ class LoginCubit extends Cubit<LoginState> {
     if (formkey.currentState != null && formkey.currentState!.validate()) {
       chanceLoading();
       final data = await service.postUserLogin(LoginRequestModel(
-          email: emailController.toString(),
-          password: passwordController.toString()));
+          email: emailController.text.trim(),
+          password: passwordController.text.trim()));
       chanceLoading();
 
       if (data is LoginResponeModel) {
         emit(LoginComplatedeState(data));
       }
     } else {
+      print("sıkıntı mı");
       isLoginFail = true;
       emit(LoginValidateState(isLoginFail));
     }
