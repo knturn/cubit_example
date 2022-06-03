@@ -7,7 +7,7 @@ abstract class ILoginService {
   final Dio dio;
   final String loginPath = ILoginServicePath.LOGIN.rawValue;
   ILoginService(this.dio);
-  Future<LoginResponeModel?> postUserLogin(LoginRequestModel model);
+  Future<LoginResponseModel?> postUserLogin(LoginRequestModel model);
 }
 
 enum ILoginServicePath { LOGIN }

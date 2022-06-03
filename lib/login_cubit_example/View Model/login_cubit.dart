@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
-import 'package:cubit_example/Service/ILogin_service.dart';
-import 'package:cubit_example/login_cubit_example/Model/login_request_model.dart';
-import 'package:cubit_example/login_cubit_example/Model/login_response_model.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../../Service/ILogin_service.dart';
+import '../Model/login_request_model.dart';
+import '../Model/login_response_model.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   TextEditingController emailController;
@@ -18,24 +21,26 @@ class LoginCubit extends Cubit<LoginState> {
 
   Future<void> postUserModel() async {
     if (formkey.currentState != null && formkey.currentState!.validate()) {
-      chanceLoading();
+      emit(LoginLoadingState(true));
       final data = await service.postUserLogin(LoginRequestModel(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim()));
-      chanceLoading();
+          email: emailController.text.toString(),
+          password: passwordController.text.toString()));
+      Future.delayed(const Duration(milliseconds: 5));
 
-      if (data is LoginResponeModel) {
-        emit(LoginComplatedeState(data));
+      if (data is LoginResponseModel && data.token.toString().isNotEmpty) {
+        emit(LoginCompletedState(data));
       }
+      emit(LoginLoadingState(false));
     } else {
-      print("sıkıntı mı");
       isLoginFail = true;
+      emit(LoginFailState(isLoginFail));
       emit(LoginValidateState(isLoginFail));
+      // emit(LoginValidateState(isLoginFail));
     }
   }
 
   void chanceLoading() {
-    isLoading = !isLoading;
+    isLoading = true;
     emit(LoginLoadingState(isLoading));
   }
 }
@@ -56,8 +61,16 @@ class LoginLoadingState extends LoginState {
   LoginLoadingState(this.isLoading);
 }
 
-class LoginComplatedeState extends LoginState {
-  final LoginResponeModel model;
+class LoginCompletedState extends LoginState {
+  final LoginResponseModel? model;
 
-  LoginComplatedeState(this.model);
+  LoginCompletedState(
+    this.model,
+  );
+}
+
+class LoginFailState extends LoginState {
+  final bool isLoginFail;
+
+  LoginFailState(this.isLoginFail);
 }

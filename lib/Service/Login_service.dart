@@ -8,13 +8,15 @@ class LoginService extends ILoginService {
   LoginService(super.dio);
 
   @override
-  Future<LoginResponeModel?> postUserLogin(LoginRequestModel model) async {
+  Future<LoginResponseModel?> postUserLogin(LoginRequestModel model) async {
     final response = await dio.post(loginPath, data: model);
 
     if (response.statusCode == HttpStatus.ok) {
-      return LoginResponeModel.fromJson(response.data);
+      return LoginResponseModel.fromJson(response.data);
+    } else if (response.statusCode == HttpStatus.badRequest) {
+      LoginResponseModel.fromJson(response.extra);
     } else {
-      return response.data.HttpStatus;
+      return null;
     }
   }
 }

@@ -1,9 +1,14 @@
-import 'package:cubit_example/login_cubit_example/Model/login_response_model.dart';
 import 'package:flutter/material.dart';
 
+import '../Model/login_response_model.dart';
+
 class LoginDetail extends StatelessWidget {
-  final LoginResponeModel? model;
-  const LoginDetail({Key? key, this.model}) : super(key: key);
+  final LoginResponseModel? model;
+
+  const LoginDetail({
+    super.key,
+    this.model,
+  });
 
   @override
   Widget build(BuildContext context) {

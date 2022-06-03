@@ -1,9 +1,9 @@
-import 'package:cubit_example/Service/Login_service.dart';
-import 'package:cubit_example/login_cubit_example/Model/login_response_model.dart';
+import 'package:cubit_example/login_cubit_example/View/register_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../Service/Login_service.dart';
 import '../View Model/login_cubit.dart';
 import 'login_detail.dart';
 
@@ -28,8 +28,10 @@ class CubitView extends StatelessWidget {
       ),
       child: BlocConsumer<LoginCubit, LoginState>(
         listener: (context, state) {
-          if (state is LoginComplatedeState) {
-            state.navigate(context);
+          if (state is LoginCompletedState) {
+            state.navigateToHome(context);
+          } else if (state is LoginFailState) {
+            state.navigateToRegister(context);
           }
         },
         builder: (context, state) {
@@ -41,17 +43,21 @@ class CubitView extends StatelessWidget {
 
   Scaffold buildScaffold(BuildContext context, LoginState state) {
     return Scaffold(
-      appBar: AppBar(
-        leading: Visibility(
-            visible: context.watch<LoginCubit>().isLoading,
-            child: const Padding(
-              padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
-              child: CircularProgressIndicator(),
-            )),
-        title: const Center(child: Text("LOGIN PAGE")),
-        backgroundColor: const Color.fromARGB(255, 7, 31, 37),
-      ),
+      appBar: buildAppbar(context, state),
       body: buildForm(state, context),
+    );
+  }
+
+  AppBar buildAppbar(BuildContext context, LoginState state) {
+    return AppBar(
+      leading: Visibility(
+          visible: context.watch<LoginCubit>().isLoading,
+          child: const Padding(
+            padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+            child: CircularProgressIndicator(),
+          )),
+      title: const Center(child: Text("LOGIN PAGE")),
+      backgroundColor: const Color.fromARGB(255, 7, 31, 37),
     );
   }
 
@@ -70,21 +76,34 @@ class CubitView extends StatelessWidget {
               height: MediaQuery.of(context).size.height * 0.03,
             ),
             buildpassword(),
-            buildButton(context)
+            buildElevatedButtonLogin(context, state)
           ],
         ),
       ),
     );
   }
 
-  ElevatedButton buildButton(BuildContext context) {
-    return ElevatedButton(
-        onPressed: context.watch<LoginCubit>().isLoading
-            ? null
-            : () {
-                context.read<LoginCubit>().postUserModel();
-              },
-        child: const Text("LOGIN"));
+  Widget buildElevatedButtonLogin(BuildContext context, LoginState state) {
+    return BlocConsumer<LoginCubit, LoginState>(
+      listener: (context, state) {
+        if (state is LoginLoadingState) {
+          const CircularProgressIndicator();
+        }
+      },
+      builder: (context, state) {
+        /* if (state is LoginLoadingState) {
+          const CircularProgressIndicator();
+        }*/
+        return ElevatedButton(
+          onPressed: context.watch<LoginCubit>().isLoading
+              ? null
+              : () {
+                  context.read<LoginCubit>().postUserModel();
+                },
+          child: const Text('LOGİN'),
+        );
+      },
+    );
   }
 
   AutovalidateMode autovalidateMethod(LoginState state) {
@@ -121,11 +140,20 @@ class CubitView extends StatelessWidget {
   }
 }
 
-extension LoginComplateExtension on LoginComplatedeState {
-  void navigate(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => LoginDetail(
-              model: model,
-            )));
+extension LoginCompletedExtension on LoginCompletedState {
+  void navigateToHome(BuildContext context) {
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LoginDetail(
+                  model: model,
+                )));
+  }
+}
+
+extension LoginFailedExtension on LoginFailState {
+  void navigateToRegister(BuildContext context) {
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => const RegisterPage()));
   }
 }
